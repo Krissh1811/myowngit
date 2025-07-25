@@ -1,6 +1,8 @@
  const fs = require("fs");
  const path = require("path");
  const crypto = require("crypto");
+ const sha1 = require("sha1");
+
 
  function commit(message){
     const gitPath = path.join(".mygit");
@@ -44,7 +46,7 @@
     // Clear the index file after commit
     fs.writeFileSync(indexPath, "", "utf8");
 
-    console.log(`Commit successful! Commit id: ${commitHash}`);
+    console.log(`Commit successful!\nCommit id: ${commitHash}`);
  }
 
  module.exports = { commit };
