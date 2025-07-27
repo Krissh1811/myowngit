@@ -30,7 +30,7 @@ function addFile(filename) {
     index[filename] = hash;
     fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
 
-    console.log(`✔️ File '${filename}' added to index with hash ${hash}`);
+    console.log(` File '${filename}' added to index with hash ${hash}`);
 }
 
 module.exports = { addFile };

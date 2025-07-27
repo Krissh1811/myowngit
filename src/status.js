@@ -5,7 +5,7 @@ function showStatus() {
     const headHash = getHeadCommitHash();
 
     if (Object.keys(index).length === 0) {
-        console.log("🟢 Nothing to commit, working tree clean.");
+        console.log(" Nothing to commit, working tree clean.");
         return;
     }
 
@@ -39,7 +39,7 @@ function showStatus() {
             console.log(`\t${type}: ${file}`);
         }
     } else {
-        console.log("🟢 Nothing to commit, working tree clean.");
+        console.log(" Nothing to commit, working tree clean.");
     }
 }
 

@@ -13,15 +13,16 @@ function initRepo() {
     fs.mkdirSync(gitPath);
     fs.mkdirSync(path.join(gitPath, "objects"));
     fs.mkdirSync(path.join(gitPath, "commits"));
-    fs.mkdirSync(path.join(gitPath, "branches"));
 
-    // Create empty index file (as JSON)
-    fs.writeFileSync(path.join(gitPath, "index.json"), JSON.stringify({}));
+    fs.mkdirSync(path.join(gitPath, "refs", "heads"), { recursive: true });
 
     fs.writeFileSync(path.join(gitPath, "HEAD"), "ref: refs/heads/main");
-    fs.writeFileSync(path.join(gitPath, "branches", "main"), "");
 
-    console.log("✅ Initialized empty MyOwnGit repository in .mygit/");
+    fs.writeFileSync(path.join(gitPath, "index.json"), JSON.stringify({}));
+
+    fs.writeFileSync(path.join(gitPath, "refs", "heads", "main"), "");
+
+    console.log(" Initialized empty MyOwnGit repository in .mygit/");
 }
 
 module.exports = { initRepo };
