@@ -3,42 +3,34 @@ const path = require("path");
 const sha1 = require("sha1");
 
 function addFile(filename) {
-  const gitPath = path.join(".mygit");
-  const objectsPath = path.join(gitPath, "objects");
-  const indexPath = path.join(gitPath, "index");
+    const gitPath = path.join(".mygit");
+    const objectsPath = path.join(gitPath, "objects");
+    const indexPath = path.join(gitPath, "index.json");
 
-  // Check if repo is initialized
-  if (!fs.existsSync(gitPath)) {
-    console.error(" ! Not a .mygit repository. Please run init first.");
-    return;
-  }
+    if (!fs.existsSync(gitPath)) {
+        console.error(" ! Not a .mygit repository. Please run init first.");
+        return;
+    }
 
-  // Read file contents
-  if (!fs.existsSync(filename)) {
-    console.error(` ! File ${filename} does not exist.`);
-    return;
-  }
-  const content = fs.readFileSync(filename, "utf8");
+    if (!fs.existsSync(filename)) {
+        console.error(` ! File ${filename} does not exist.`);
+        return;
+    }
 
-  // Create blob object and save it
-  const hash = sha1(content);
-  const objectPath = path.join(objectsPath, hash);
-  fs.writeFileSync(objectPath, content);
+    const content = fs.readFileSync(filename, "utf8");
+    const hash = sha1(content);
+    fs.writeFileSync(path.join(objectsPath, hash), content);
 
-  // If index file doesn't exist, create it
-  if (!fs.existsSync(indexPath)) {
-    fs.writeFileSync(indexPath, ""); // create an empty index
-  }
+    // Read index.json
+    let index = {};
+    if (fs.existsSync(indexPath)) {
+        index = JSON.parse(fs.readFileSync(indexPath, "utf8"));
+    }
 
-  // Update index
-  const indexContent = fs.readFileSync(indexPath, "utf8");
-  const lines = indexContent.split("\n").filter(Boolean);
-  const filtered = lines.filter((line) => !line.endsWith(` ${filename}`));
-  filtered.push(`${hash} ${filename}`);
-  fs.writeFileSync(indexPath, filtered.join("\n") + "\n");
+    index[filename] = hash;
+    fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
 
-  console.log(`✔️ File '${filename}' added to index with hash ${hash}`);
+    console.log(`✔️ File '${filename}' added to index with hash ${hash}`);
 }
 
 module.exports = { addFile };
-

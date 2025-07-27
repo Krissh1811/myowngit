@@ -1,52 +1,51 @@
- const fs = require("fs");
- const path = require("path");
- const crypto = require("crypto");
- const sha1 = require("sha1");
+const fs = require("fs");
+const path = require("path");
+const sha1 = require("sha1");
 
-
- function commit(message){
-    const gitPath = path.join(".mygit");
-    const indexPath = path.join(gitPath, "index")
-    const objectsPath = path.join(gitPath, "objects");
+function commit(message) {
+    const gitPath = path.join(__dirname, "..", ".mygit");
+    const indexPath = path.join(gitPath, "index.json");
     const commitsPath = path.join(gitPath, "commits");
+    const headPath = path.join(gitPath, "HEAD");
 
-    // Check if .mygit repo exists
-    if(!fs.existsSync(gitPath)){
-        console.error("! Not a .mygit repository. Please run init first.");
-        return;
-    }
-    
-    // Check if index exists or if there is something to commit
-    if(!fs.existsSync(indexPath)){
-        console.error("! Nothing to commit. Add files using 'add' first.");
+    if (!fs.existsSync(indexPath)) {
+        console.error("❌ No staged files. Use 'add' to stage files.");
         return;
     }
 
-    // Create "commits" directory if it doesn't exists
-    if(!fs.existsSync(commitsPath)){
-        fs.mkdirSync(commitsPath);
-    }
-    const indexContent = fs.readFileSync(indexPath, "utf8").trim();
-    if(indexContent === ""){
-        console.error("! Nothing to commit. Index is empty");
+    const index = JSON.parse(fs.readFileSync(indexPath, "utf8"));
+    if (Object.keys(index).length === 0) {
+        console.error("❌ Nothing to commit. Staging area is empty.");
         return;
     }
 
-    // Create commit content
+    const headRef = fs.readFileSync(headPath, "utf8").trim();
+    const branchName = headRef.split("ref: refs/heads/")[1];
+    const branchPath = path.join(gitPath, "branches", branchName);
+
+    const parentHash = fs.existsSync(branchPath)
+        ? fs.readFileSync(branchPath, "utf8").trim()
+        : null;
+
     const timeStamp = new Date().toISOString();
-    const commitContent = `Date: ${timeStamp}\n\nMessage: ${message}\n\n${indexContent}`;
 
-    // Generate commit hash
+    const commitData = {
+        parent: parentHash || null,
+        date: timeStamp,
+        message,
+        files: index,
+    };
+
+    const commitContent = JSON.stringify(commitData, null, 2);
     const commitHash = sha1(commitContent);
 
-    // Save commit to .mygit/commits/<hash>
-    const commitFilePath = path.join(commitsPath, commitHash);
-    fs.writeFileSync(commitFilePath, commitContent, "utf8");
+    fs.writeFileSync(path.join(commitsPath, commitHash), commitContent);
+    fs.writeFileSync(branchPath, commitHash);
 
-    // Clear the index file after commit
-    fs.writeFileSync(indexPath, "", "utf8");
+    // Clear index after commit
+    fs.writeFileSync(indexPath, JSON.stringify({}));
 
-    console.log(`Commit successful!\nCommit id: ${commitHash}`);
- }
+    console.log(`✅ Commit successful! Hash: ${commitHash}`);
+}
 
- module.exports = { commit };
+module.exports = { commit };

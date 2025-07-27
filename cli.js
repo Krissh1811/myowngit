@@ -1,6 +1,8 @@
 const { initRepo } = require("./src/init");
 const { addFile } = require("./src/add");
 const { commit } = require("./src/commit");
+const { showLog } = require("./src/log");
+const { showStatus } = require("./src/status");
 
 function main(){
     const command = process.argv[2];
@@ -22,6 +24,10 @@ function main(){
             return;
         }
         commit(message);
+    } else if(command === "log"){
+        showLog();
+    } else if(command === "status"){
+        showStatus();
     } else {
         console.error("! Unknown command: ", command);
     }
