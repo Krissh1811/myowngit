@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { getGitDir, getHead, isInitialized } = require("./utils");
+const { getGitDir, getCurrentBranch, isInitialized, getAllBranches, branchExists, getHeadCommitHash, updateBranch, updateHead } = require("./utils");
 
 function listBranches() {
     if (!isInitialized()) {
@@ -8,17 +8,20 @@ function listBranches() {
         return;
     }
 
-    const branchesDir = path.join(getGitDir(), "refs", "heads");
-    const branchFiles = fs.readdirSync(branchesDir);
-    const headRef = fs.readFileSync(path.join(getGitDir(), "HEAD"), "utf8").trim();
-    const currentBranch = headRef.startsWith("ref: ") ? headRef.split("/").pop() : null;
+    const branches = getAllBranches();
+    const currentBranch = getCurrentBranch();
 
-    console.log("Branches:\n");
-    for (const branch of branchFiles) {
+    if (branches.length === 0) {
+        console.log("📭 No branches found.");
+        return;
+    }
+
+    console.log("🌿 Branches:\n");
+    for (const branch of branches) {
         if (branch === currentBranch) {
-            console.log(`* ${branch}`);
+            console.log(`* 🌿 ${branch} (current)`);
         } else {
-            console.log(`  ${branch}`);
+            console.log(`  🌿 ${branch}`);
         }
     }
 }
@@ -34,20 +37,50 @@ function createBranch(branchName) {
         return;
     }
 
-    const branchesDir = path.join(getGitDir(), "refs", "heads");
-    const branchPath = path.join(branchesDir, branchName);
-
-    if (fs.existsSync(branchPath)) {
+    if (branchExists(branchName)) {
         console.error(`! Branch '${branchName}' already exists.`);
         return;
     }
 
-    const headHash = getHead();
-    fs.writeFileSync(branchPath, headHash, "utf8");
-    console.log(` Branch '${branchName}' created at ${headHash}`);
+    const headHash = getHeadCommitHash();
+    updateBranch(branchName, headHash || "");
+    
+    console.log(`✅ Branch '${branchName}' created`);
+    if (headHash) {
+        console.log(`📍 Points to commit: ${headHash}`);
+    } else {
+        console.log(`📍 Points to initial commit (will be set on first commit)`);
+    }
+}
+
+function switchBranch(branchName) {
+    if (!isInitialized()) {
+        console.error("! Repository not initialized. Run init first.");
+        return;
+    }
+
+    if (!branchName) {
+        console.error("! Please provide a branch name.");
+        return;
+    }
+
+    if (!branchExists(branchName)) {
+        console.error(`! Branch '${branchName}' does not exist.`);
+        return;
+    }
+
+    const currentBranch = getCurrentBranch();
+    if (currentBranch === branchName) {
+        console.log(`Already on branch '${branchName}'`);
+        return;
+    }
+
+    updateHead(branchName);
+    console.log(`✅ Switched to branch '${branchName}'`);
 }
 
 module.exports = {
     listBranches,
     createBranch,
+    switchBranch,
 };

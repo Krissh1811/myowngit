@@ -3,7 +3,7 @@ const path = require("path");
 const sha1 = require("sha1");
 
 function addFile(filename) {
-    const gitPath = path.join(".mygit");
+    const gitPath = ".mygit";
     const objectsPath = path.join(gitPath, "objects");
     const indexPath = path.join(gitPath, "index.json");
 
@@ -19,18 +19,23 @@ function addFile(filename) {
 
     const content = fs.readFileSync(filename, "utf8");
     const hash = sha1(content);
+    
+    // Store file content in objects directory
     fs.writeFileSync(path.join(objectsPath, hash), content);
 
-    // Read index.json
+    // Read and update index
     let index = {};
     if (fs.existsSync(indexPath)) {
-        index = JSON.parse(fs.readFileSync(indexPath, "utf8"));
+        const indexContent = fs.readFileSync(indexPath, "utf8").trim();
+        if (indexContent) {
+            index = JSON.parse(indexContent);
+        }
     }
 
     index[filename] = hash;
     fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
 
-    console.log(` File '${filename}' added to index with hash ${hash}`);
+    console.log(` ✅ File '${filename}' added to index with hash ${hash}`);
 }
 
 module.exports = { addFile };

@@ -1,50 +1,52 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const { getGitDir } = require("./utils");
+const { getIndex, getHeadCommitHash, getCurrentBranch, updateBranch } = require("./utils");
+
+const INDEX_PATH = path.join(".mygit", "index.json");
+const COMMITS_DIR = path.join(".mygit", "commits");
 
 function commit(message) {
-  const gitPath = getGitDir();
-  const indexPath = path.join(gitPath, "index.json");
-  const headPath = path.join(gitPath, "head");
+    if (!message) {
+        console.error("! Please provide a commit message.");
+        return;
+    }
 
-  if (!fs.existsSync(indexPath)) {
-    console.error("❌ Staging area not found.");
-    return;
-  }
+    const index = getIndex();
+    if (Object.keys(index).length === 0) {
+        console.log("! No changes to commit.");
+        return;
+    }
 
-  const index = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
-  if (Object.keys(index).length === 0) {
-    console.error("❌ Nothing to commit. Staging area is empty.");
-    return;
-  }
+    const parent = getHeadCommitHash();
+    const timestamp = new Date().toISOString();
+    const currentBranch = getCurrentBranch();
+    const files = { ...index }; // Copy index files
 
-  const tree = index;
-  const commitContent = JSON.stringify(tree);
-  const commitHash = crypto.createHash("sha1").update(commitContent + message).digest("hex");
+    const commitData = {
+        parent: parent || null,
+        message,
+        timestamp,
+        files,
+        branch: currentBranch
+    };
 
-  const headRef = fs.readFileSync(headPath, "utf-8").trim();
-  const branchName = headRef.split("/").pop();
-  const branchPath = path.join(gitPath, "refs", "heads", branchName);
+    const content = JSON.stringify(commitData, null, 2);
+    const hash = crypto.createHash("sha1").update(content).digest("hex");
 
-  let parentHash = null;
-  if (fs.existsSync(branchPath)) {
-    parentHash = fs.readFileSync(branchPath, "utf-8").trim();
-  }
+    // Save commit
+    const commitPath = path.join(COMMITS_DIR, hash + ".json");
+    fs.writeFileSync(commitPath, content);
+    
+    // Update branch reference
+    updateBranch(currentBranch, hash);
 
-  const commitObject = {
-    message,
-    date: new Date().toISOString(),
-    parent: parentHash,
-    tree
-  };
+    // Clear index after commit
+    fs.writeFileSync(INDEX_PATH, JSON.stringify({}));
 
-  const commitDir = path.join(gitPath, "commits");
-  const commitPath = path.join(commitDir, commitHash);
-  fs.writeFileSync(commitPath, JSON.stringify(commitObject, null, 2));
-  fs.writeFileSync(branchPath, commitHash);
-
-  console.log(`✅ Committed with hash ${commitHash}`);
+    console.log(`✅ Committed with hash ${hash}`);
+    console.log(`📝 Message: ${message}`);
+    console.log(`🌿 Branch: ${currentBranch}`);
 }
 
 module.exports = { commit };

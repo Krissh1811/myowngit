@@ -1,34 +1,42 @@
 const fs = require("fs");
 const path = require("path");
-const { getGitDir } = require("./utils");
+const { getGitDir, getCurrentBranch, getBranchHash, getCommitData } = require("./utils");
 
 function showLog() {
-  const gitPath = getGitDir();
-  const headPath = path.join(gitPath, "head");
-  const headRef = fs.readFileSync(headPath, "utf-8").trim();
-  const branchName = headRef.split("/").pop();
-  const branchPath = path.join(gitPath, "refs", "heads", branchName);
+    const gitPath = getGitDir();
+    const currentBranch = getCurrentBranch();
+    
+    console.log(`📜 Log for branch: ${currentBranch}\n`);
 
-  if (!fs.existsSync(branchPath)) {
-    console.error("❌ Branch not found:", branchName);
-    return;
-  }
+    let currentHash = getBranchHash(currentBranch);
 
-  let currentHash = fs.readFileSync(branchPath, "utf-8").trim();
+    if (!currentHash) {
+        console.log("📭 No commits yet.");
+        return;
+    }
 
-  while (currentHash) {
-    const commitPath = path.join(gitPath, "commits", currentHash);
-    if (!fs.existsSync(commitPath)) break;
+    let commitCount = 0;
+    while (currentHash) {
+        const commitData = getCommitData(currentHash);
+        if (!commitData) break;
 
-    const commitData = JSON.parse(fs.readFileSync(commitPath, "utf-8"));
+        commitCount++;
+        console.log(`🔸 Commit: ${currentHash}`);
+        console.log(`📅 Date: ${commitData.timestamp || "N/A"}`);
+        console.log(`📝 Message: ${commitData.message || "N/A"}`);
+        console.log(`🌿 Branch: ${commitData.branch || currentBranch}`);
+        
+        if (commitData.files) {
+            const fileCount = Object.keys(commitData.files).length;
+            console.log(`📁 Files: ${fileCount} file(s) changed`);
+        }
+        
+        console.log();
 
-    console.log("🔸 Commit:", currentHash);
-    console.log("📅 Date:", commitData.date || "N/A");
-    console.log("📝 Message:", commitData.message || "N/A");
-    console.log();
+        currentHash = commitData.parent;
+    }
 
-    currentHash = commitData.parent;
-  }
+    console.log(`📊 Total commits: ${commitCount}`);
 }
 
 module.exports = { showLog };
