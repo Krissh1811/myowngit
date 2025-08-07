@@ -9,23 +9,18 @@ function initRepo() {
         return;
     }
 
-    // Create directory structure
     fs.mkdirSync(gitPath);
     fs.mkdirSync(path.join(gitPath, "objects"));
     fs.mkdirSync(path.join(gitPath, "commits"));
     fs.mkdirSync(path.join(gitPath, "refs", "heads"), { recursive: true });
     fs.mkdirSync(path.join(gitPath, "refs", "remotes"), { recursive: true });
 
-    // Initialize HEAD to point to main branch
     fs.writeFileSync(path.join(gitPath, "HEAD"), "ref: refs/heads/main");
 
-    // Initialize empty index
     fs.writeFileSync(path.join(gitPath, "index.json"), JSON.stringify({}));
 
-    // Create main branch (empty initially)
     fs.writeFileSync(path.join(gitPath, "refs", "heads", "main"), "");
 
-    // Create config file for remotes
     const config = {
         remotes: {}
     };

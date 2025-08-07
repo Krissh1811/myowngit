@@ -20,10 +20,8 @@ function addFile(filename) {
     const content = fs.readFileSync(filename, "utf8");
     const hash = sha1(content);
     
-    // Store file content in objects directory
     fs.writeFileSync(path.join(objectsPath, hash), content);
 
-    // Read and update index
     let index = {};
     if (fs.existsSync(indexPath)) {
         const indexContent = fs.readFileSync(indexPath, "utf8").trim();

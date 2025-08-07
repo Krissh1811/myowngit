@@ -109,7 +109,6 @@ switch (command) {
         break;
 
     case "push":
-        // push [remote] [branch]
         pushToRemote(args[1], args[2]);
         break;
 

@@ -34,14 +34,11 @@ function commit(message) {
     const content = JSON.stringify(commitData, null, 2);
     const hash = crypto.createHash("sha1").update(content).digest("hex");
 
-    // Save commit
     const commitPath = path.join(COMMITS_DIR, hash + ".json");
     fs.writeFileSync(commitPath, content);
     
-    // Update branch reference
     updateBranch(currentBranch, hash);
 
-    // Clear index after commit
     fs.writeFileSync(INDEX_PATH, JSON.stringify({}));
 
     console.log(`✅ Committed with hash ${hash}`);

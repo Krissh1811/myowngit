@@ -170,27 +170,6 @@ myowngit/
 3. **Branch References**: Branches are simply pointers to commit hashes
 4. **Staging Area**: Changes are staged before committing
 
-## 🎯 Educational Purpose
-
-This project is designed to help understand:
-- How Git stores data internally
-- The concept of content-addressable storage
-- How branches and merging work
-- The staging area concept
-- Remote repositories and synchronization
-
-## 🤝 Contributing
-
-This is an educational project, but contributions are welcome! Feel free to:
-- Report bugs
-- Suggest improvements
-- Add new features
-- Improve documentation
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🙏 Acknowledgments
 
 - Inspired by the original Git version control system
@@ -209,9 +188,3 @@ Please note that this is a simplified implementation and should not be used for 
 - No support for .gitignore files
 
 For real projects, use the official Git implementation!
-
----
-
-**Happy Learning! 🎉**
-
-*If you found this project helpful, please consider giving it a star ⭐*

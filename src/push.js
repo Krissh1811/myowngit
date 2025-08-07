@@ -22,7 +22,6 @@ function addRemote(remoteName, remotePath) {
 
     if (!config.remotes) config.remotes = {};
 
-    // Resolve relative paths
     const resolvedPath = path.resolve(remotePath);
     config.remotes[remoteName] = resolvedPath;
 
@@ -62,12 +61,10 @@ function pushToRemote(remoteName, branchName) {
         return;
     }
 
-    // Default to current branch if not specified
     if (!branchName) {
         branchName = getCurrentBranch();
     }
 
-    // Default to 'origin' if remote not specified
     if (!remoteName) {
         remoteName = 'origin';
     }
@@ -95,7 +92,6 @@ function pushToRemote(remoteName, branchName) {
     }
 
     try {
-        // Create remote directory structure if it doesn't exist
         if (!fs.existsSync(remotePath)) {
             fs.mkdirSync(remotePath, { recursive: true });
             fs.mkdirSync(path.join(remotePath, "commits"));
@@ -103,7 +99,6 @@ function pushToRemote(remoteName, branchName) {
             fs.mkdirSync(path.join(remotePath, "refs", "heads"), { recursive: true });
         }
 
-        // Copy all commits in the branch history
         const commitsToCopy = [];
         let hash = currentHash;
         
@@ -114,16 +109,13 @@ function pushToRemote(remoteName, branchName) {
             hash = commitData.parent;
         }
 
-        // Copy commits and objects
         for (const commitHash of commitsToCopy.reverse()) {
-            // Copy commit file
             const localCommitPath = path.join(".mygit", "commits", commitHash + ".json");
             const remoteCommitPath = path.join(remotePath, "commits", commitHash + ".json");
             
             if (fs.existsSync(localCommitPath) && !fs.existsSync(remoteCommitPath)) {
                 fs.copyFileSync(localCommitPath, remoteCommitPath);
                 
-                // Copy associated objects (files)
                 const commitData = getCommitData(commitHash);
                 if (commitData && commitData.files) {
                     for (const fileHash of Object.values(commitData.files)) {
@@ -138,7 +130,6 @@ function pushToRemote(remoteName, branchName) {
             }
         }
 
-        // Update remote branch reference
         const remoteBranchPath = path.join(remotePath, "refs", "heads", branchName);
         fs.writeFileSync(remoteBranchPath, currentHash);
 

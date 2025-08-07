@@ -12,7 +12,6 @@ function showStatus() {
         return;
     }
 
-    // First commit case or missing commit data
     if (!headHash) {
         console.log("\n📋 Changes to be committed:");
         for (const file in index) {
